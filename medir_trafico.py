@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+from zoneinfo import ZoneInfo
 import gspread
 import requests
 
@@ -132,10 +133,13 @@ def consultar_tramo(origen, destino):
 
 
 def main():
-  fecha_actual = datetime.now().strftime("%Y-%m-%d")
-  hora_actual = datetime.now().strftime("%H:%M:%S")
+  # Forzar la hora local de México
+  zona_mexico = ZoneInfo("America/Mexico_City")
+  ahora_mexico = datetime.now(zona_mexico)
 
-  # Conexión usando el diccionario seguro cargado desde GitHub Secrets
+  fecha_actual = ahora_mexico.strftime("%Y-%m-%d")
+  hora_actual = ahora_mexico.strftime("%H:%M:%S")
+
   gc = gspread.service_account_from_dict(credentials_dict)
   sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
 
@@ -159,7 +163,7 @@ def main():
 
   if filas_nuevas:
     sheet.append_rows(filas_nuevas)
-    print("¡Monitoreo completado y registrado con éxito en la nube!")
+    print("¡Monitoreo completado y registrado con éxito con horario de México!")
 
 
 if __name__ == "__main__":
