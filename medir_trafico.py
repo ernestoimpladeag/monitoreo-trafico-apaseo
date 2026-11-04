@@ -16,7 +16,7 @@ HEADERS = {
     "X-Goog-FieldMask": "routes.duration,routes.staticDuration,routes.distanceMeters",
 }
 
-# Lista de tramos actualizada
+# Lista de tramos actualizada con las correcciones solicitadas
 TRAMOS = [
     {
         "calle": "ANTONIO PLAZA (NORTE A SUR)",
@@ -54,14 +54,14 @@ TRAMOS = [
         "destino": [20.5432212, -100.6783004],
     },
     {
-        "calle": "Narciso Mendoza - Hacia Oriente (Puente Colorado)",
-        "origen": [20.5484064, -100.6873489],
-        "destino": [20.5481101, -100.686584],
+        "calle": "Narciso Mendoza - Farmacia Herrera (Hacia Oeste)",
+        "origen": [20.54847004472538, -100.68751726355653],
+        "destino": [20.548095280425123, -100.68652765265001],
     },
     {
-        "calle": "Narciso Mendoza - Semáforo (Hacia Poniente)",
-        "origen": [20.5475831, -100.6842762],
-        "destino": [20.54808261075303, -100.68639940430883],
+        "calle": "Narciso Mendoza - Libros Rocío (Hacia Este)",
+        "origen": [20.54774421925289, -100.68485603583234],
+        "destino": [20.54795911208518, -100.68601772094658],
     },
     {
         "calle": "Octaviano Muñoz Ledo - Los Charcos (Este a Oeste)",
@@ -71,7 +71,7 @@ TRAMOS = [
     {
         "calle": "Pípila - Mercado (Sur a Norte)",
         "origen": [20.5456148, -100.6915668],
-        "destino": [20.5482068, -100.6897043],
+        "destino": [20.548272581687005, -100.6902194476167],
     },
     {
         "calle": "Piña Soria - Auto Zone (Hacia Este / Salida Qro)",
@@ -87,103 +87,101 @@ TRAMOS = [
 
 
 def es_horario_permitido(ahora_mexico):
-  dia_semana = ahora_mexico.weekday()  # 0 a 4 = Lunes a Viernes, 5-6 = Fines
-  hora_actual = ahora_mexico.time()
+    dia_semana = ahora_mexico.weekday()  # 0 a 4 = Lunes a Viernes, 5-6 = Fines
+    hora_actual = ahora_mexico.time()
 
-  if dia_semana < 5:  # Lunes a Viernes
-    r1_ini, r1_fin = time(6, 40), time(8, 20)
-    r2_ini, r2_fin = time(12, 40), time(14, 40)
-    r3_ini, r3_fin = time(18, 20), time(20, 20)
-    return (
-        (r1_ini <= hora_actual <= r1_fin)
-        or (r2_ini <= hora_actual <= r2_fin)
-        or (r3_ini <= hora_actual <= r3_fin)
-    )
-  else:  # Sábado y Domingo
-    r_ini, r_fin = time(11, 0), time(15, 20)
-    return r_ini <= hora_actual <= r_fin
+    if dia_semana < 5:  # Lunes a Viernes
+        r1_ini, r1_fin = time(6, 40), time(8, 20)
+        r2_ini, r2_fin = time(12, 40), time(14, 40)
+        r3_ini, r3_fin = time(18, 20), time(20, 20)
+        return (
+            (r1_ini <= hora_actual <= r1_fin)
+            or (r2_ini <= hora_actual <= r2_fin)
+            or (r3_ini <= hora_actual <= r3_fin)
+        )
+    else:  # Sábado y Domingo
+        r_ini, r_fin = time(11, 0), time(15, 20)
+        return r_ini <= hora_actual <= r_fin
 
 
 def consultar_tramo(origen, destino):
-  body = {
-      "origin": {
-          "location": {
-              "latLng": {"latitude": origen[0], "longitude": origen[1]}
-          }
-      },
-      "destination": {
-          "location": {
-              "latLng": {"latitude": destino[0], "longitude": destino[1]}
-          }
-      },
-      "travelMode": "DRIVE",
-      "routingPreference": "TRAFFIC_AWARE",
-  }
+    body = {
+        "origin": {
+            "location": {
+                "latLng": {"latitude": origen[0], "longitude": origen[1]}
+            }
+        },
+        "destination": {
+            "location": {
+                "latLng": {"latitude": destino[0], "longitude": destino[1]}
+            }
+        },
+        "travelMode": "DRIVE",
+        "routingPreference": "TRAFFIC_AWARE",
+    }
 
-  resp = requests.post(URL, json=body, headers=HEADERS)
-  if resp.status_code != 200:
-    return None, f"Error {resp.status_code}: {resp.text}"
+    resp = requests.post(URL, json=body, headers=HEADERS)
+    if resp.status_code != 200:
+        return None, f"Error {resp.status_code}: {resp.text}"
 
-  data = resp.json()
-  if "routes" not in data or not data["routes"]:
-    return None, "No se encontró ruta"
+    data = resp.json()
+    if "routes" not in data or not data["routes"]:
+        return None, "No se encontró ruta"
 
-  ruta = data["routes"][0]
-  distancia_m = ruta.get("distanceMeters", 0)
-  tiempo_real_s = int(ruta.get("duration", "0s").replace("s", ""))
-  tiempo_base_s = int(ruta.get("staticDuration", "0s").replace("s", ""))
-  retraso_s = max(0, tiempo_real_s - tiempo_base_s)
+    ruta = data["routes"][0]
+    distancia_m = ruta.get("distanceMeters", 0)
+    tiempo_real_s = int(ruta.get("duration", "0s").replace("s", ""))
+    tiempo_base_s = int(ruta.get("staticDuration", "0s").replace("s", ""))
+    retraso_s = max(0, tiempo_real_s - tiempo_base_s)
 
-  # Porcentaje de retraso real (ej. si hay 10s de retraso sobre 20s base, da 50.0%)
-  pct_congestion = (
-      (retraso_s / tiempo_base_s) * 100 if tiempo_base_s > 0 else 0.0
-  )
+    pct_congestion = (
+        (retraso_s / tiempo_base_s) * 100 if tiempo_base_s > 0 else 0.0
+    )
 
-  return {
-      "distancia_m": distancia_m,
-      "tiempo_base_s": tiempo_base_s,
-      "tiempo_real_s": tiempo_real_s,
-      "retraso_s": retraso_s,
-      "pct_congestion": round(pct_congestion, 2),
-  }, None
+    return {
+        "distancia_m": distancia_m,
+        "tiempo_base_s": tiempo_base_s,
+        "tiempo_real_s": tiempo_real_s,
+        "retraso_s": retraso_s,
+        "pct_congestion": round(pct_congestion, 2),
+    }, None
 
 
 def main():
-  zona_mexico = ZoneInfo("America/Mexico_City")
-  ahora_mexico = datetime.now(zona_mexico)
+    zona_mexico = ZoneInfo("America/Mexico_City")
+    ahora_mexico = datetime.now(zona_mexico)
 
-  # Validación estricta de horario en México
-  if not es_horario_permitido(ahora_mexico):
-    print(f"Fuera de horario ({ahora_mexico.strftime('%H:%M:%S')}), omitiendo.")
-    return
+    if not es_horario_permitido(ahora_mexico):
+        print(f"Fuera de horario ({ahora_mexico.strftime('%H:%M:%S')}), omitiendo.")
+        return
 
-  fecha_actual = ahora_mexico.strftime("%Y-%m-%d")
-  hora_actual = ahora_mexico.strftime("%H:%M:%S")
+    fecha_actual = ahora_mexico.strftime("%Y-%m-%d")
+    hora_actual = ahora_mexico.strftime("%H:%M:%S")
 
-  gc = gspread.service_account_from_dict(credentials_dict)
-  sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
+    gc = gspread.service_account_from_dict(credentials_dict)
+    sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
 
-  filas_nuevas = []
-  for tramo in TRAMOS:
-    res, err = consultar_tramo(tramo["origen"], tramo["destino"])
-    if err:
-      continue
+    filas_nuevas = []
+    for tramo in TRAMOS:
+        res, err = consultar_tramo(tramo["origen"], tramo["destino"])
+        if err:
+            continue
 
-    filas_nuevas.append([
-        fecha_actual,
-        hora_actual,
-        tramo["calle"],
-        res["distancia_m"],
-        res["tiempo_base_s"],
-        res["tiempo_real_s"],
-        res["retraso_s"],
-        res["pct_congestion"],
-    ])
+        filas_nuevas.append([
+            fecha_actual,
+            hora_actual,
+            tramo["calle"],
+            res["distancia_m"],
+            res["tiempo_base_s"],
+            res["tiempo_real_s"],
+            res["retraso_s"],
+            res["pct_congestion"],
+        ])
 
-  if filas_nuevas:
-    sheet.append_rows(filas_nuevas)
-    print("¡Monitoreo actualizado y registrado con éxito!")
+    if filas_nuevas:
+        sheet.append_rows(filas_nuevas)
+        print("¡Monitoreo actualizado y registrado con éxito!")
 
 
 if __name__ == "__main__":
-  main()
+    main()
