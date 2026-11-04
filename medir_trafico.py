@@ -16,7 +16,9 @@ HEADERS = {
     "X-Goog-FieldMask": "routes.duration,routes.staticDuration,routes.distanceMeters",
 }
 
-# Lista de tramos actualizada con las correcciones solicitadas
+DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+# Lista de tramos actualizada con correcciones
 TRAMOS = [
     {
         "calle": "ANTONIO PLAZA (NORTE A SUR)",
@@ -54,14 +56,14 @@ TRAMOS = [
         "destino": [20.5432212, -100.6783004],
     },
     {
-        "calle": "Narciso Mendoza - Farmacia Herrera (Hacia Oeste)",
-        "origen": [20.54847004472538, -100.68751726355653],
-        "destino": [20.548095280425123, -100.68652765265001],
+        "calle": "Narciso Mendoza - Hacia Oriente (Puente Colorado)",
+        "origen": [20.5484064, -100.6873489],
+        "destino": [20.54774320219996, -100.68484169800773],
     },
     {
-        "calle": "Narciso Mendoza - Libros Rocío (Hacia Este)",
-        "origen": [20.54774421925289, -100.68485603583234],
-        "destino": [20.54795911208518, -100.68601772094658],
+        "calle": "Narciso Mendoza - Semáforo (Hacia Poniente)",
+        "origen": [20.5475831, -100.6842762],
+        "destino": [20.54808261075303, -100.68639940430883],
     },
     {
         "calle": "Octaviano Muñoz Ledo - Los Charcos (Este a Oeste)",
@@ -71,7 +73,7 @@ TRAMOS = [
     {
         "calle": "Pípila - Mercado (Sur a Norte)",
         "origen": [20.5456148, -100.6915668],
-        "destino": [20.546702343273406, -100.6909857458406],
+        "destino": [20.548272581687005, -100.6902194476167],
     },
     {
         "calle": "Piña Soria - Auto Zone (Hacia Este / Salida Qro)",
@@ -91,8 +93,9 @@ def es_horario_permitido(ahora_mexico):
     hora_actual = ahora_mexico.time()
 
     if dia_semana < 5:  # Lunes a Viernes
-        r1_ini, r1_fin = time(7, 00), time(8, 20)
-        r2_ini, r2_fin = time(13, 00), time(14, 40)
+        r1_ini, r1_fin = time(6, 40), time(8, 20)
+        r2_ini, r2_fin = time(12, 40), time(14, 40)
+        # Margen final ampliado a las 20:30 para evitar cortes por latencia
         r3_ini, r3_fin = time(18, 20), time(20, 30)
         return (
             (r1_ini <= hora_actual <= r1_fin)
@@ -157,6 +160,7 @@ def main():
 
     fecha_actual = ahora_mexico.strftime("%Y-%m-%d")
     hora_actual = ahora_mexico.strftime("%H:%M:%S")
+    dia_semana = DIAS_SEMANA[ahora_mexico.weekday()]
 
     gc = gspread.service_account_from_dict(credentials_dict)
     sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
@@ -167,6 +171,7 @@ def main():
         if err:
             continue
 
+        # Orden de columnas: Fecha, Hora, Tramo, Distancia, Base, Real, Retraso, Congestión, Día
         filas_nuevas.append([
             fecha_actual,
             hora_actual,
@@ -176,6 +181,7 @@ def main():
             res["tiempo_real_s"],
             res["retraso_s"],
             res["pct_congestion"],
+            dia_semana,
         ])
 
     if filas_nuevas:
