@@ -18,7 +18,7 @@ HEADERS = {
 
 DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
-# Lista de tramos exacta de las 13:20
+# Lista de tramos con tu orden y coordenadas manuales definitivas
 TRAMOS = [
     {
         "calle": "ANTONIO PLAZA (NORTE A SUR)",
@@ -93,9 +93,9 @@ def es_horario_permitido(ahora_mexico):
     hora_actual = ahora_mexico.time()
 
     if dia_semana < 5:  # Lunes a Viernes
-        r1_ini, r1_fin = time(7, 00), time(8, 20)
-        r2_ini, r2_fin = time(13, 00), time(14, 40)
-        r3_ini, r3_fin = time(18, 20), time(20, 30)
+        r1_ini, r1_fin = time(7, 0), time(8, 30)
+        r2_ini, r2_fin = time(13, 0), time(14, 50)  # Margen ampliado para capturar las 14:40 sin retrasos
+        r3_ini, r3_fin = time(18, 20), time(20, 30)  # Margen ampliado para capturar las 20:20 sin retrasos
         return (
             (r1_ini <= hora_actual <= r1_fin)
             or (r2_ini <= hora_actual <= r2_fin)
@@ -170,6 +170,7 @@ def main():
         if err:
             continue
 
+        # Orden de columnas: Fecha, Hora, Tramo, Distancia, Base, Real, Retraso, Congestión, Día
         filas_nuevas.append([
             fecha_actual,
             hora_actual,
@@ -179,7 +180,7 @@ def main():
             res["tiempo_real_s"],
             res["retraso_s"],
             res["pct_congestion"],
-            dia_semana,  # <--- Día de la semana como 9ª columna (Columna I)
+            dia_semana,
         ])
 
     if filas_nuevas:
