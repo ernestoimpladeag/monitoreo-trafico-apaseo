@@ -93,7 +93,7 @@ def es_horario_permitido(ahora_mexico):
     if dia_semana < 5:  # Lunes a Viernes
         r1_ini, r1_fin = time(7, 00), time(8, 20)
         r2_ini, r2_fin = time(13, 00), time(14, 40)
-        r3_ini, r3_fin = time(18, 20), time(20, 20)
+        r3_ini, r3_fin = time(18, 20), time(20, 30)
         return (
             (r1_ini <= hora_actual <= r1_fin)
             or (r2_ini <= hora_actual <= r2_fin)
