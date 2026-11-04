@@ -56,12 +56,12 @@ TRAMOS = [
         "destino": [20.5432212, -100.6783004],
     },
     {
-        "calle": "Narciso Mendoza - Farmacia Herrera (Hacia Oeste)",
+        "calle": "Narciso Mendoza - Libros Rocío (Hacia Este)",
         "origen": [20.54847004472538, -100.68751726355653],
         "destino": [20.548095280425123, -100.68652765265001],
     },
     {
-        "calle": "Narciso Mendoza - Libros Rocío (Hacia Este)",
+        "calle": "Narciso Mendoza - Farmacia Herrera (Hacia Oeste)",
         "origen": [20.54774421925289, -100.68485603583234],
         "destino": [20.54795911208518, -100.68601772094658],
     },
