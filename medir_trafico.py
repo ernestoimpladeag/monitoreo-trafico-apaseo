@@ -71,7 +71,7 @@ TRAMOS = [
     {
         "calle": "Pípila - Mercado (Sur a Norte)",
         "origen": [20.5456148, -100.6915668],
-        "destino": [20.548272581687005, -100.6902194476167],
+        "destino": [20.546702343273406, -100.6909857458406],
     },
     {
         "calle": "Piña Soria - Auto Zone (Hacia Este / Salida Qro)",
