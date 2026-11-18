@@ -18,7 +18,7 @@ HEADERS = {
 
 DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
-# Lista de tramos actualizada con los cambios de sentido en 1, 11 y 13
+# Lista de tramos con los nuevos sentidos de circulación (1, 11 y 13 invertidos)
 TRAMOS = [
     {
         "calle": "ANTONIO PLAZA (SUR A NORTE)",
@@ -92,22 +92,18 @@ def es_horario_permitido(ahora_mexico):
     dia_semana = ahora_mexico.weekday()  # 0 a 4 = Lunes a Viernes, 5-6 = Fines
     hora_actual = ahora_mexico.time()
 
-    if dia_semana < 5:  # Lunes a Viernes
-        r1_ini, r1_fin = time(7, 0), time(8, 30)      # Ventana 7:00 - 8:20 (con margen)
-        r2_ini, r2_fin = time(13, 0), time(14, 30)    # Ventana 13:00 - 14:20 (con margen)
-        r3_ini, r3_fin = time(18, 0), time(19, 30)    # Ventana 18:00 - 19:20 (con margen)
+    if dia_semana < 5:  # Lunes a Viernes (Horarios anteriores con margen de seguridad)
+        r1_ini, r1_fin = time(7, 0), time(8, 30)      # Ventana 7:00 - 8:20
+        r2_ini, r2_fin = time(13, 0), time(14, 50)    # Ventana 13:00 - 14:40
+        r3_ini, r3_fin = time(18, 20), time(20, 30)   # Ventana 18:20 - 20:20
         return (
             (r1_ini <= hora_actual <= r1_fin)
             or (r2_ini <= hora_actual <= r2_fin)
             or (r3_ini <= hora_actual <= r3_fin)
         )
-    else:  # Sábado y Domingo
-        r1_ini, r1_fin = time(11, 20), time(14, 10)   # Ventana 11:20 - 14:00 (con margen)
-        r2_ini, r2_fin = time(18, 0), time(20, 10)     # Ventana 18:00 - 20:00 (con margen)
-        return (
-            (r1_ini <= hora_actual <= r1_fin)
-            or (r2_ini <= hora_actual <= r2_fin)
-        )
+    else:  # Sábado y Domingo (Horario anterior)
+        r_ini, r_fin = time(11, 0), time(15, 20)
+        return r_ini <= hora_actual <= r_fin
 
 
 def consultar_tramo(origen, destino):
@@ -183,7 +179,7 @@ def main():
             res["tiempo_real_s"],
             res["retraso_s"],
             res["pct_congestion"],
-            dia_semana,  # Día de la semana en la Columna I
+            dia_semana,
         ])
 
     if filas_nuevas:
