@@ -18,12 +18,12 @@ HEADERS = {
 
 DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
-# Lista de tramos con tu orden y coordenadas manuales definitivas
+# Lista de tramos actualizada con los cambios de sentido en 1, 11 y 13
 TRAMOS = [
     {
-        "calle": "ANTONIO PLAZA (NORTE A SUR)",
-        "origen": [20.542918, -100.692304],
-        "destino": [20.541905, -100.692781],
+        "calle": "ANTONIO PLAZA (SUR A NORTE)",
+        "origen": [20.541905, -100.692781],
+        "destino": [20.542918, -100.692304],
     },
     {
         "calle": "Guadalupe Victoria - Elektra (Oeste a Este)",
@@ -71,9 +71,9 @@ TRAMOS = [
         "destino": [20.54840359697561, -100.68989595617006],
     },
     {
-        "calle": "Pípila - Mercado (Sur a Norte)",
-        "origen": [20.5456148, -100.6915668],
-        "destino": [20.546702343273406, -100.6909857458406],
+        "calle": "Pípila - Mercado (Norte a Sur)",
+        "origen": [20.546702343273406, -100.6909857458406],
+        "destino": [20.5456148, -100.6915668],
     },
     {
         "calle": "Piña Soria - Auto Zone (Hacia Este / Salida Qro)",
@@ -81,9 +81,9 @@ TRAMOS = [
         "destino": [20.5416476, -100.6925724],
     },
     {
-        "calle": "Vicente Ruiz - Aurrerá (Sur a Norte)",
-        "origen": [20.5472582, -100.6906872],
-        "destino": [20.5481896, -100.6902459],
+        "calle": "Vicente Ruiz - Aurrerá (Norte a Sur)",
+        "origen": [20.5481896, -100.6902459],
+        "destino": [20.5472582, -100.6906872],
     },
 ]
 
@@ -93,17 +93,21 @@ def es_horario_permitido(ahora_mexico):
     hora_actual = ahora_mexico.time()
 
     if dia_semana < 5:  # Lunes a Viernes
-        r1_ini, r1_fin = time(7, 0), time(8, 30)
-        r2_ini, r2_fin = time(13, 0), time(14, 50)  # Margen ampliado para capturar las 14:40 sin retrasos
-        r3_ini, r3_fin = time(18, 20), time(20, 30)  # Margen ampliado para capturar las 20:20 sin retrasos
+        r1_ini, r1_fin = time(7, 0), time(8, 30)      # Ventana 7:00 - 8:20 (con margen)
+        r2_ini, r2_fin = time(13, 0), time(14, 30)    # Ventana 13:00 - 14:20 (con margen)
+        r3_ini, r3_fin = time(18, 0), time(19, 30)    # Ventana 18:00 - 19:20 (con margen)
         return (
             (r1_ini <= hora_actual <= r1_fin)
             or (r2_ini <= hora_actual <= r2_fin)
             or (r3_ini <= hora_actual <= r3_fin)
         )
     else:  # Sábado y Domingo
-        r_ini, r_fin = time(11, 0), time(15, 20)
-        return r_ini <= hora_actual <= r_fin
+        r1_ini, r1_fin = time(11, 20), time(14, 10)   # Ventana 11:20 - 14:00 (con margen)
+        r2_ini, r2_fin = time(18, 0), time(20, 10)     # Ventana 18:00 - 20:00 (con margen)
+        return (
+            (r1_ini <= hora_actual <= r1_fin)
+            or (r2_ini <= hora_actual <= r2_fin)
+        )
 
 
 def consultar_tramo(origen, destino):
@@ -170,7 +174,6 @@ def main():
         if err:
             continue
 
-        # Orden de columnas: Fecha, Hora, Tramo, Distancia, Base, Real, Retraso, Congestión, Día
         filas_nuevas.append([
             fecha_actual,
             hora_actual,
@@ -180,7 +183,7 @@ def main():
             res["tiempo_real_s"],
             res["retraso_s"],
             res["pct_congestion"],
-            dia_semana,
+            dia_semana,  # Día de la semana en la Columna I
         ])
 
     if filas_nuevas:
